@@ -11,6 +11,7 @@ import org.moire.ultrasonic.service.LocalMediaPlayer
 import org.moire.ultrasonic.service.MediaPlayerController
 import org.moire.ultrasonic.service.MediaPlayerControllerImpl
 import org.moire.ultrasonic.service.MediaPlayerLifecycleSupport
+import org.moire.ultrasonic.service.MediaStoreService
 import org.moire.ultrasonic.util.ShufflePlayBuffer
 
 /**
@@ -27,6 +28,7 @@ val mediaPlayerModule = module {
     single { ExternalStorageMonitor(androidContext()) }
     single { ShufflePlayBuffer(androidContext()) }
     single { Downloader(androidContext(), get(), get(), get()) }
+    single { MediaStoreService(androidContext()) }
     single { LocalMediaPlayer(get(), androidContext()) }
     single { AudioFocusHandler(get()) }
 

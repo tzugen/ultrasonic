@@ -19,7 +19,9 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.io.RandomAccessFile
-import org.koin.java.KoinJavaComponent.inject
+import org.koin.core.component.KoinApiExtension
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import org.moire.ultrasonic.domain.MusicDirectory
 import org.moire.ultrasonic.service.MusicServiceFactory.getMusicService
 import org.moire.ultrasonic.util.CacheCleaner
@@ -30,19 +32,17 @@ import timber.log.Timber
 
 /**
  * This class represents a singe Song or Video that can be downloaded.
- *
- * @author Sindre Mehus
- * @version $Id$
  */
+
+@KoinApiExtension
 class DownloadFile(
     private val context: Context,
     val song: MusicDirectory.Entry,
     private val save: Boolean
-) {
+) : KoinComponent {
     val partialFile: File
     val completeFile: File
     private val saveFile: File = FileUtil.getSongFile(context, song)
-    private val mediaStoreService: MediaStoreService
     private var downloadTask: CancellableTask? = null
     var isFailed = false
     private var retryCount = 5
@@ -58,14 +58,14 @@ class DownloadFile(
     @Volatile
     private var completeWhenDone = false
 
-    private val downloader = inject(Downloader::class.java)
-
     val progress: MutableLiveData<Int> = MutableLiveData(0)
+
+    private val mediaStoreService: MediaStoreService by inject()
+    private val downloader: Downloader by inject()
 
     init {
         partialFile = File(saveFile.parent, FileUtil.getPartialFile(saveFile.name))
         completeFile = File(saveFile.parent, FileUtil.getCompleteFile(saveFile.name))
-        mediaStoreService = MediaStoreService(context)
     }
 
     /**
@@ -307,7 +307,7 @@ class DownloadFile(
                 }
                 wifiLock?.release()
                 CacheCleaner(context).cleanSpace()
-                downloader.value.checkDownloads()
+                downloader.checkDownloads()
             }
         }
 
