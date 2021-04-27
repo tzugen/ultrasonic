@@ -137,7 +137,7 @@ class DownloadFile(
         Util.delete(partialFile)
         Util.delete(completeFile)
         Util.delete(saveFile)
-        mediaStoreService.deleteFromMediaStore(this)
+        mediaStoreService.deleteFromMediaStoreSafe(this)
     }
 
     fun unpin() {
@@ -185,7 +185,7 @@ class DownloadFile(
             } else if (completeWhenDone) {
                 if (save) {
                     Util.renameFile(partialFile, saveFile)
-                    mediaStoreService.saveInMediaStore(this@DownloadFile)
+                    mediaStoreService.addToMediaStoreSafe(this@DownloadFile)
                 } else {
                     Util.renameFile(partialFile, completeFile)
                 }
@@ -282,7 +282,7 @@ class DownloadFile(
                 } else {
                     if (save) {
                         Util.renameFile(partialFile, saveFile)
-                        mediaStoreService.saveInMediaStore(this@DownloadFile)
+                        mediaStoreService.addToMediaStoreSafe(this@DownloadFile)
                     } else {
                         Util.renameFile(partialFile, completeFile)
                     }

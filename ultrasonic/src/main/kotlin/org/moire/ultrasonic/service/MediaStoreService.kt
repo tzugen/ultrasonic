@@ -18,14 +18,12 @@ import timber.log.Timber
 /**
  * By adding UltraSonics media files to the Android MediaStore
  * they become available in the stock music apps
- *
- * @author Sindre Mehus
  */
 
 class MediaStoreService(private val context: Context) {
 
     // Find the audio collection on the primary external storage device.
-    val collection: Uri by lazy {
+    private val collection: Uri by lazy {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             MediaStore.Audio.Media.getContentUri(
                 MediaStore.VOLUME_EXTERNAL_PRIMARY
@@ -35,7 +33,7 @@ class MediaStoreService(private val context: Context) {
         }
     }
 
-    val albumArtCollection: Uri by lazy {
+    private val albumArtCollection: Uri by lazy {
         // This path is not well documented
         // https://android.googlesource.com/platform/packages/providers/
         // MediaProvider/+/refs/tags/android-platform-11.0.0_r5/
@@ -44,12 +42,42 @@ class MediaStoreService(private val context: Context) {
         Uri.parse(collection.toString().replaceAfterLast("/", "albumart"))
     }
 
-    fun saveInMediaStore(downloadFile: DownloadFile) {
+    // There are a number of exceptions that can occur when trying to store data in the MediaStore,
+    // and unfortunately it is all not very well documented.
+    // Since this is a non-essential call, we just try and just log the exception.
+    fun addToMediaStoreSafe(downloadFile: DownloadFile) {
+        try {
+            addToMediaStore(downloadFile)
+        } catch (e: Exception) {
+            Timber.w(e, "Failed to add to MediaStore")
+        }
+    }
+
+    // See comment above
+    fun deleteFromMediaStoreSafe(downloadFile: DownloadFile) {
+        try {
+            deleteFromMediaStore(downloadFile)
+        } catch (e: Exception) {
+            Timber.w(e, "Failed to delete from MediaStore")
+        }
+    }
+
+    // See comment above
+    fun insertAlbumArtSafe(albumId: Int, downloadFile: DownloadFile) {
+        try {
+            insertAlbumArt(albumId, downloadFile)
+        } catch (e: Exception) {
+            Timber.w(e, "Failed to insert album art to MediaStore")
+        }
+    }
+
+    private fun addToMediaStore(downloadFile: DownloadFile) {
         val song = downloadFile.song
         val songFile = downloadFile.completeFile
 
         // Delete existing row in case the song has been downloaded before.
-        deleteFromMediaStore(downloadFile)
+        deleteFromMediaStoreSafe(downloadFile)
+
         val contentResolver = context.contentResolver
         val values = ContentValues()
         values.put(MediaStore.MediaColumns.TITLE, song.title)
@@ -71,13 +99,13 @@ class MediaStoreService(private val context: Context) {
             )
             if (cursor != null && cursor.moveToFirst()) {
                 val albumId = cursor.getInt(0)
-                insertAlbumArt(albumId, downloadFile)
+                insertAlbumArtSafe(albumId, downloadFile)
                 cursor.close()
             }
         }
     }
 
-    fun deleteFromMediaStore(downloadFile: DownloadFile) {
+    private fun deleteFromMediaStore(downloadFile: DownloadFile) {
         val contentResolver = context.contentResolver
         val song = downloadFile.song
         val file = downloadFile.completeFile
