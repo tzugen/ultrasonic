@@ -36,15 +36,6 @@ empty-blocks:
 
 complexity:
   active: true
-  LongMethod:
-    threshold: 20
-  LongParameterList:
-    functionThreshold: 5
-    constructorThreshold: 5
-  LargeClass:
-    threshold: 150
-  ComplexMethod:
-    threshold: 10
   TooManyFunctions:
     thresholdInFiles: 20
     thresholdInClasses: 20
@@ -71,13 +62,15 @@ style:
     maxLineLength: 120
     excludePackageStatements: false
     excludeImportStatements: false
+  MagicNumber:
+    ignoreNumbers: ['-1', '0', '1', '2', '100']
+    ignoreEnums: true
+    ignorePropertyDeclaration: true
+  UnnecessaryAbstractClass:
+    active: false
 
 comments:
   active: true
-  CommentOverPrivateFunction:
-    active: true
-  CommentOverPrivateProperty:
-    active: true
   UndocumentedPublicClass:
     active: false
     searchInNestedClass: true
